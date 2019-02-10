@@ -8,14 +8,14 @@ HeadingControl::~HeadingControl()
 {
 }
 
-double HeadingControl::computeOperatorInputs(double curr_heading, double desired_heading)
+double HeadingControl::computeDirection(double curr_heading, double desired_heading)
 {
-    double ip = -(curr_heading - desired_heading)/1.57;
+    double dir = (curr_heading - desired_heading)/(M_PI/2);
 
-    if(ip > 1.0)
-        ip = 1.0;
-    else if (ip < -1.0)
-        ip = -1.0;
+    if ( dir > 1.0)
+        dir = 1.0;
+    else if (dir < -1.0)
+        dir = -1.0;
 
-    return ip; 
+    return dir; 
 }

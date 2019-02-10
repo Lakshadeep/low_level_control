@@ -28,7 +28,7 @@ void HeadingControlROS::run()
     double turn = 0;
     if(is_enabled_)
     {
-        turn = heading_control_.computeOperatorInputs(monitored_heading_, desired_heading_);
+        turn = heading_control_.computeDirection(monitored_heading_, desired_heading_);
     }
 
     nav2d_operator::cmd cmd_msg;
