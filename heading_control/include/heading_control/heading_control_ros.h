@@ -35,6 +35,7 @@ private:
   HeadingControl heading_control_;
   bool is_enabled_; 
   double monitored_heading_, desired_heading_;
+  double heading_control_velocity_;
 
 
   // Members

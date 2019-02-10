@@ -33,7 +33,7 @@ void HeadingControlROS::run()
 
     nav2d_operator::cmd cmd_msg;
     cmd_msg.Turn = turn;
-    cmd_msg.Velocity = 0.05; //hardcoded
+    cmd_msg.Velocity = heading_control_velocity_;
     cmd_msg.Mode = 0;
     
     operator_cmd_publisher_.publish(cmd_msg);
@@ -42,13 +42,17 @@ void HeadingControlROS::run()
 void HeadingControlROS::loadParameters()
 {
     std::string desired_heading_topic, monitored_heading_topic;
+    double heading_control_velocity;
 
     nh_.param<std::string>("desired_heading_topic", desired_heading_topic, "/desired_heading");
     nh_.param<std::string>("monitored_headin_topic", monitored_heading_topic, "/monitored_heading");
+    nh_.param("heading_control_velocity", heading_control_velocity, 0.1);
     desired_heading_topic_ = desired_heading_topic;
     monitored_heading_topic_ = monitored_heading_topic;
+    heading_control_velocity_ = heading_control_velocity;
     ROS_DEBUG("desired_heading_topic: %s", desired_heading_topic_.c_str());
     ROS_DEBUG("monitored_heading_topic: %s", monitored_heading_topic_.c_str());
+    ROS_DEBUG("heading_control_velocity: %f", heading_control_velocity_);
 }
 
 bool HeadingControlROS::headingControlSwitch(heading_control::Switch::Request  &req, heading_control::Switch::Response &res)
