@@ -1,6 +1,6 @@
 #include "heading_control/heading_control_ros.h"
 
-HeadingControlROS::HeadingControlROS(ros::NodeHandle& nh): nh_(nh), monitored_heading_(0), desired_heading_(0), is_enabled_(true)
+HeadingControlROS::HeadingControlROS(ros::NodeHandle& nh): nh_(nh), monitored_heading_(0), desired_heading_(0), is_enabled_(false)
 {
     loadParameters();
     desired_heading_subscriber_ = nh_.subscribe(desired_heading_topic_, 1, &HeadingControlROS::desiredHeadingCallback, this);
@@ -26,14 +26,17 @@ void HeadingControlROS::monitoredHeadingCallback(const std_msgs::Float32ConstPtr
 void HeadingControlROS::run()
 {
     double turn = 0;
+    double velocity = 0;
+
     if(is_enabled_)
     {
         turn = heading_control_.computeDirection(monitored_heading_, desired_heading_);
+        velocity = heading_control_velocity_;
     }
 
     nav2d_operator::cmd cmd_msg;
     cmd_msg.Turn = turn;
-    cmd_msg.Velocity = heading_control_velocity_;
+    cmd_msg.Velocity = velocity;
     cmd_msg.Mode = 0;
     
     operator_cmd_publisher_.publish(cmd_msg);
@@ -57,7 +60,7 @@ void HeadingControlROS::loadParameters()
 
 bool HeadingControlROS::headingControlSwitch(heading_control::Switch::Request  &req, heading_control::Switch::Response &res)
 {
-    
+    is_enabled_ = req.enable;
     res.status = true;
     return true;
 }
