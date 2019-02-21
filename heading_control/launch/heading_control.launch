@@ -1,8 +1,8 @@
 <launch>
   <node name="heading_control" pkg="heading_control" type="heading_control_node">
     <param name="~desired_heading_topic" value="/desired_heading"/>
+    <param name="~desired_velocity_topic" value="/desired_velocity"/>
     <param name="~monitored_heading_topic" value="/monitored_heading"/>
-    <param name="~heading_control_velocity" value="0.1"/>
   </node>
 </launch>
 
