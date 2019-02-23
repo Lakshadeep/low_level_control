@@ -3,6 +3,7 @@
     <param name="~desired_heading_topic" value="/desired_heading"/>
     <param name="~desired_velocity_topic" value="/desired_velocity"/>
     <param name="~monitored_heading_topic" value="/monitored_heading"/>
+    <param name="~frequency" value="20"/>
   </node>
 </launch>
 
