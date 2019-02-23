@@ -63,6 +63,16 @@ void HeadingControlROS::loadParameters()
     ROS_DEBUG("desired_heading_topic: %s", desired_heading_topic_.c_str());
     ROS_DEBUG("monitored_heading_topic: %s", monitored_heading_topic_.c_str());
     ROS_DEBUG("desired_velocity_topic: %s", desired_heading_topic_.c_str());
+
+    double kp;
+    nh_.param<double>("proportional_gain", kp, 2.0);
+    heading_control_.setProportionalGain(kp);
+    ROS_DEBUG("proportional_gain: %f", kp);
+
+    double kd;
+    nh_.param<double>("derivative_gain", kd, 5.0);
+    heading_control_.setDerivativeGain(kd);
+    ROS_DEBUG("derivative_gain: %f", kd);
 }
 
 bool HeadingControlROS::headingControlSwitch(heading_control::Switch::Request  &req, heading_control::Switch::Response &res)

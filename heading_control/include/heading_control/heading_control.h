@@ -7,10 +7,15 @@ class HeadingControl
 {
 
 public:
-  HeadingControl();
-  ~HeadingControl();
-  double computeDirection(double curr_heading, double desired_heading);
+    HeadingControl();
+    ~HeadingControl();
+    double computeDirection(double curr_heading, double desired_heading);
+    void setProportionalGain(double gain);
+    void setDerivativeGain(double gain);
+
 private:
+    double last_error_;
+    double kp_, kd_;
 };
 
 #endif

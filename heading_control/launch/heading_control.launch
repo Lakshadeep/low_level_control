@@ -4,6 +4,8 @@
     <param name="~desired_velocity_topic" value="/desired_velocity"/>
     <param name="~monitored_heading_topic" value="/monitored_heading"/>
     <param name="~frequency" value="20"/>
+    <param name="~proportional_gain" value="2.0" />
+    <param name="~derivative_gain" value="5.0" />
   </node>
 </launch>
 
