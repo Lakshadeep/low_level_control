@@ -39,14 +39,14 @@ void HeadingControlROS::run()
     {
         turn = heading_control_.computeDirection(monitored_heading_, desired_heading_);
         velocity = desired_velocity_;
-    }
 
-    nav2d_operator::cmd cmd_msg;
-    cmd_msg.Turn = turn;
-    cmd_msg.Velocity = velocity;
-    cmd_msg.Mode = 0;
-    
-    operator_cmd_publisher_.publish(cmd_msg);
+        nav2d_operator::cmd cmd_msg;
+        cmd_msg.Turn = turn;
+        cmd_msg.Velocity = velocity;
+        cmd_msg.Mode = 0;
+        
+        operator_cmd_publisher_.publish(cmd_msg);
+    }
 }
 
 void HeadingControlROS::loadParameters()
