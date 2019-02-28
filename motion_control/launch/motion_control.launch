@@ -1,11 +1,8 @@
 <launch>
-  <node name="heading_control" pkg="heading_control" type="heading_control_node">
-    <param name="~desired_heading_topic" value="/desired_heading"/>
-    <param name="~desired_velocity_topic" value="/desired_velocity"/>
-    <param name="~monitored_heading_topic" value="/monitored_heading"/>
-    <param name="~frequency" value="20"/>
-    <param name="~proportional_gain" value="2.0" />
-    <param name="~derivative_gain" value="5.0" />
+  <node name="motion_control" pkg="motion_control" type="motion_control_node" >
+    <remap from="scan" to="/ropod/laser/scan"/>
+    <rosparam file="$(find motion_control)/config/control.yaml"/>
+    <rosparam file="$(find motion_control)/config/costmap.yaml" ns="local_map" />
   </node>
 </launch>
 

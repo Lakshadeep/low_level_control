@@ -9,11 +9,12 @@ add_compile_options(-std=c++11)
 ## is used, also find other catkin packages
 find_package(catkin REQUIRED COMPONENTS
   roscpp
-  rospy
-  std_msgs
-  geometry_msgs
-  nav_msgs
   message_generation
+  tf
+  tf2_ros
+  costmap_2d
+  sensor_msgs
+  std_msgs
 )
 
 ## System dependencies are found with CMake's conventions
@@ -37,7 +38,6 @@ generate_messages(
   geometry_msgs
   nav_msgs
 )
-
 
 ###################################
 ## catkin specific configuration ##
