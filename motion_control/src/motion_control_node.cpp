@@ -22,7 +22,7 @@ int main(int argc, char **argv)
 
     while (ros::ok())
     {
-        //motion_control_ros.run();
+        motion_control_ros.executeCommand();
         ros::spinOnce();
         rate.sleep();
     }

@@ -8,7 +8,7 @@ tf_listener_(ros::Duration(0.5))
     // subscribers, publishers and services
     motion_command_subscriber_ = nh_.subscribe(motion_command_topic_, 1, &MotionControlROS::motionCommandCallback, this);
     motion_control_switch_service_ = nh.advertiseService("/motion_control_switch", &MotionControlROS::motionControlSwitch, this);
-    velocity_command_publisher_ = nh_.advertise<motion_control::Command>(velocity_command_topic_, 1);
+    velocity_command_publisher_ = nh_.advertise<geometry_msgs::Twist>(velocity_command_topic_, 1);
 
     // Create the local costmap
     local_map = new costmap_2d::Costmap2DROS(std::string("local_map"), tf_listener_);
@@ -17,6 +17,19 @@ tf_listener_(ros::Duration(0.5))
     // Apply tf_prefix to all used frame-id's
     robot_frame_ = tf_listener_.resolve(robot_frame_);
     odometry_frame_ = tf_listener_.resolve(odometry_frame_);
+
+    // Initialize the lookup table for the driving directions
+    ROS_INFO("Initializing LUT...");
+    initTrajTable();
+    ROS_INFO("...done!");
+
+    // Set internal parameters
+    desired_direction_ = 0;
+    desired_velocity_ = 0;
+    current_direction_ = 0;
+    current_velocity_ = 0;
+    drive_mode_ = 0;
+    recovery_steps_ = 0;
 }
 
 MotionControlROS::~MotionControlROS()
