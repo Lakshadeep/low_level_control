@@ -7,6 +7,7 @@ MotionControlROS::MotionControlROS(ros::NodeHandle& nh): nh_(nh), is_enabled_(fa
     // subscribers, publishers and services
     motion_command_subscriber_ = nh_.subscribe(motion_command_topic_, 1, &MotionControlROS::motionCommandCallback, this);
     motion_control_switch_service_ = nh.advertiseService("/motion_control_switch", &MotionControlROS::motionControlSwitch, this);
+    motion_control_params_service_ = nh.advertiseService("/motion_control_params", &MotionControlROS::reConfigureParams, this);
     velocity_command_publisher_ = nh_.advertise<geometry_msgs::Twist>(velocity_command_topic_, 1);
     trajectory_publisher_ = nh_.advertise<nav_msgs::GridCells>("/route", 1);
     plan_publisher_ = nh_.advertise<nav_msgs::GridCells>("/plan", 1);
@@ -122,6 +123,33 @@ bool MotionControlROS::motionControlSwitch(motion_control::Switch::Request  &req
     res.status = true;
     return true;
 }
+
+bool MotionControlROS::reConfigureParams(motion_control::Params::Request  &req, motion_control::Params::Response &res)
+{
+    dynamic_reconfigure::ReconfigureRequest srv_req;
+    dynamic_reconfigure::ReconfigureResponse srv_resp;
+    dynamic_reconfigure::DoubleParameter double_param;
+    dynamic_reconfigure::Config conf;
+
+    double_param.name = "inflation_radius";
+    double_param.value = req.inflation_radius;
+    conf.doubles.push_back(double_param);
+
+    srv_req.config = conf;
+
+    ros::AsyncSpinner spinner(1); // Use 1 thread
+    spinner.start();
+
+    if(ros::service::call("/motion_control/local_map/inflation_layer/set_parameters", srv_req, srv_resp))
+    {    
+        res.inflation_radius = req.inflation_radius;
+        spinner.stop();
+        return true;
+    }
+
+    spinner.stop();
+    return false;
+} 
 
 void MotionControlROS::initTrajTable()
 {

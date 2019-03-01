@@ -15,6 +15,7 @@ find_package(catkin REQUIRED COMPONENTS
   costmap_2d
   sensor_msgs
   std_msgs
+  dynamic_reconfigure
 )
 
 ## System dependencies are found with CMake's conventions
@@ -30,6 +31,7 @@ add_service_files(
   DIRECTORY srv
   FILES 
   Switch.srv
+  Params.srv
 )
 
 generate_messages(

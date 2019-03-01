@@ -20,6 +20,6 @@ desired_safety_threshold: 0.25
 
 # The importance weights of the 3 action values
 safety_weight: 1
-escape_weight: 0.5
+escape_weight: 0.8
 conformance_weight: 0.5
-continue_weight: 1
+continue_weight: 0.8

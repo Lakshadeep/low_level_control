@@ -13,8 +13,13 @@
 #include <tf/transform_listener.h>
 #include <tf2_ros/transform_listener.h>
 
+#include <dynamic_reconfigure/DoubleParameter.h>
+#include <dynamic_reconfigure/Reconfigure.h>
+#include <dynamic_reconfigure/Config.h>
+
 #include <motion_control/command.h>
 #include <motion_control/Switch.h>
+#include <motion_control/Params.h>
 
 #include <motion_control/motion_control.h>
 
@@ -38,6 +43,7 @@ private:
     ros::NodeHandle nh_;
     ros::Subscriber motion_command_subscriber_;
     ros::ServiceServer motion_control_switch_service_;
+    ros::ServiceServer motion_control_params_service_;
     ros::Publisher velocity_command_publisher_;
     ros::Publisher trajectory_publisher_;
     ros::Publisher plan_publisher_;
@@ -77,6 +83,7 @@ private:
     void loadParameters();
     void motionCommandCallback(const motion_control::CommandConstPtr& motion_cmd_msg);
     bool motionControlSwitch(motion_control::Switch::Request  &req, motion_control::Switch::Response &res);
+    bool reConfigureParams(motion_control::Params::Request  &req, motion_control::Params::Response &res);
 
     /*
     @brief Initializes look-up tables
