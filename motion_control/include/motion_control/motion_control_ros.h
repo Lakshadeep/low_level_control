@@ -29,7 +29,7 @@ public:
 
     /*
     @brief Generates and sends Twist-Message to Robot
-    This is the Operator's core function and should be called periodically
+    Executes motion controller
      */
     void executeCommand();
 
@@ -41,12 +41,9 @@ private:
     ros::Publisher velocity_command_publisher_;
     ros::Publisher trajectory_publisher_;
     ros::Publisher plan_publisher_;
-    ros::Publisher cost_publisher_;
 
     // ROS tf
     tf::TransformListener tf_listener_;
-    tf2_ros::Buffer tf2_buffer;
-    tf2_ros::TransformListener tf2_listener;
 
     // costmap params
     costmap_2d::Costmap2DROS* local_map;
@@ -118,7 +115,6 @@ private:
      */
     sensor_msgs::PointCloud* getPointCloud(double direction, double velocity);
     double findBestDirection();
-    double diff(double v1, double v2);
 
 };
 

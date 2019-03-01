@@ -1,7 +1,6 @@
 #include "motion_control/motion_control_ros.h"
 
-MotionControlROS::MotionControlROS(ros::NodeHandle& nh): nh_(nh), is_enabled_(false), tf2_buffer(), tf2_listener(tf2_buffer), 
-tf_listener_(ros::Duration(0.5))
+MotionControlROS::MotionControlROS(ros::NodeHandle& nh): nh_(nh), is_enabled_(false), tf_listener_(ros::Duration(0.5))
 {
     loadParameters();
 
@@ -9,6 +8,8 @@ tf_listener_(ros::Duration(0.5))
     motion_command_subscriber_ = nh_.subscribe(motion_command_topic_, 1, &MotionControlROS::motionCommandCallback, this);
     motion_control_switch_service_ = nh.advertiseService("/motion_control_switch", &MotionControlROS::motionControlSwitch, this);
     velocity_command_publisher_ = nh_.advertise<geometry_msgs::Twist>(velocity_command_topic_, 1);
+    trajectory_publisher_ = nh_.advertise<nav_msgs::GridCells>("/route", 1);
+    plan_publisher_ = nh_.advertise<nav_msgs::GridCells>("/plan", 1);
 
     // Create the local costmap
     local_map = new costmap_2d::Costmap2DROS(std::string("local_map"), tf_listener_);
@@ -19,10 +20,9 @@ tf_listener_(ros::Duration(0.5))
     odometry_frame_ = tf_listener_.resolve(odometry_frame_);
 
     // Initialize the lookup table for the driving directions
-    ROS_INFO("Initializing LUT...");
+    ROS_DEBUG("Initializing LUT...");
     initTrajTable();
-    ROS_INFO("...done!");
-
+    
     // Set internal parameters
     desired_direction_ = 0;
     desired_velocity_ = 0;
@@ -30,6 +30,8 @@ tf_listener_(ros::Duration(0.5))
     current_velocity_ = 0;
     drive_mode_ = 0;
     recovery_steps_ = 0;
+
+    ROS_DEBUG("Initialization complete");
 }
 
 MotionControlROS::~MotionControlROS()
@@ -120,7 +122,6 @@ bool MotionControlROS::motionControlSwitch(motion_control::Switch::Request  &req
     res.status = true;
     return true;
 }
-
 
 void MotionControlROS::initTrajTable()
 {
@@ -355,15 +356,6 @@ double MotionControlROS::evaluateAction(double direction, double velocity, bool 
 
     action_value /= norm_factor;
 
-    if (debug)
-    {
-        geometry_msgs::Vector3 cost_msg;
-        cost_msg.x = value_safety;
-        cost_msg.y = value_escape;
-        cost_msg.z = value_conformance;
-        //mCostPublisher.publish(cost_msg);
-    }
-
     return action_value;
 }
 
@@ -387,17 +379,11 @@ double MotionControlROS::findBestDirection()
     return best_dir;
 }
 
-double MotionControlROS::diff(double v1, double v2)
-{
-    if (v1 > v2)
-        return v1 - v2;
-    else
-        return v2 - v1;
-}
-
-
 void MotionControlROS::executeCommand()
 {
+    if(!is_enabled_)
+        return;
+
     // 1. Get a copy of the costmap to work on.
     costmap = local_map->getCostmap();
     boost::unique_lock<costmap_2d::Costmap2D::mutex_t> lock(*(costmap->getMutex()));
@@ -425,8 +411,6 @@ void MotionControlROS::executeCommand()
         current_velocity_ = 0.0;
     }
 
-    // Create some Debug-Info
-    evaluateAction(current_direction_, current_velocity_, true);
 
     sensor_msgs::PointCloud* originalCloud = getPointCloud(current_direction_, desired_velocity_);
     sensor_msgs::PointCloud transformedCloud;
@@ -449,7 +433,7 @@ void MotionControlROS::executeCommand()
     if (free_cells == transformedCloud.points.size() && safe_velocity_ < 0.5)
         safe_velocity_ = 0.5;
 
-    if (free_space < 0.3 && free_cells < transformedCloud.points.size())
+    if (free_space < 0.5 && free_cells < transformedCloud.points.size())
         safe_velocity_ = 0;
 
     if (safe_velocity_ > max_velocity_)
@@ -487,7 +471,7 @@ void MotionControlROS::executeCommand()
             route_msg.cells[i].y = transformedCloud.points[i].y;
             route_msg.cells[i].z = transformedCloud.points[i].z;
         }
-        //mTrajectoryPublisher.publish(route_msg);
+        trajectory_publisher_.publish(route_msg);
 
         // Publish plan via ROS (mainly for debugging)
         sensor_msgs::PointCloud* originalPlanCloud = getPointCloud(desired_direction_, desired_velocity_);
@@ -516,7 +500,7 @@ void MotionControlROS::executeCommand()
             plan_msg.cells[i].y = transformedPlanCloud.points[i].y;
             plan_msg.cells[i].z = transformedPlanCloud.points[i].z;
         }
-        //mPlanPublisher.publish(plan_msg);
+        plan_publisher_.publish(plan_msg);
     }
 
     // Publish result via Twist-Message

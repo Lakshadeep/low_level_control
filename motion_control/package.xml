@@ -2,7 +2,9 @@
 <package format="2">
   <name>motion_control</name>
   <version>0.1.0</version>
-  <description>The motion control package</description>
+  <description>The motion control package - this package is largely based on nav2d_operator package by 
+    Sebastian Kasperski http://wiki.ros.org/nav2d_operator
+  </description>
 
   <!-- One maintainer tag required, multiple allowed, one person per tag -->
   <!-- Example:  -->
