@@ -8,6 +8,7 @@ MotionControlROS::MotionControlROS(ros::NodeHandle& nh): nh_(nh), is_enabled_(fa
     motion_command_subscriber_ = nh_.subscribe(motion_command_topic_, 1, &MotionControlROS::motionCommandCallback, this);
     motion_control_switch_service_ = nh.advertiseService("/motion_control_switch", &MotionControlROS::motionControlSwitch, this);
     motion_control_params_service_ = nh.advertiseService("/motion_control_params", &MotionControlROS::reConfigureParams, this);
+    motion_control_drive_mode_service_ = nh.advertiseService("/motion_control_drive_mode", &MotionControlROS::setDriveMode, this);
     velocity_command_publisher_ = nh_.advertise<geometry_msgs::Twist>(velocity_command_topic_, 1);
     trajectory_publisher_ = nh_.advertise<nav_msgs::GridCells>("/route", 1);
     plan_publisher_ = nh_.advertise<nav_msgs::GridCells>("/plan", 1);
@@ -53,7 +54,6 @@ void MotionControlROS::motionCommandCallback(const motion_control::CommandConstP
     }
     desired_direction_ = motion_cmd_msg->turn;
     desired_velocity_ = motion_cmd_msg->velocity;
-    drive_mode_ = motion_cmd_msg->mode;
 }
 
 void MotionControlROS::loadParameters()
@@ -121,6 +121,13 @@ bool MotionControlROS::motionControlSwitch(motion_control::Switch::Request  &req
 {
     is_enabled_ = req.enable;
     res.status = true;
+    return true;
+}
+
+bool MotionControlROS::setDriveMode(motion_control::DriveMode::Request  &req, motion_control::DriveMode::Response &res)
+{
+    drive_mode_ = req.drive_mode;
+    res.drive_mode = drive_mode_;
     return true;
 }
 

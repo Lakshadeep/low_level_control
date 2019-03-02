@@ -14,7 +14,7 @@ find_package(catkin REQUIRED COMPONENTS
   geometry_msgs
   nav_msgs
   message_generation
-  nav2d_operator
+  motion_control
 )
 
 ## System dependencies are found with CMake's conventions
@@ -24,6 +24,7 @@ add_service_files(
   DIRECTORY srv
   FILES 
   Switch.srv
+  DriveMode.srv
 )
 
 generate_messages(

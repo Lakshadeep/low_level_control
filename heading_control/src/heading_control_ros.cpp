@@ -8,7 +8,7 @@ desired_velocity_(0)
     desired_velocity_subscriber_ = nh_.subscribe(desired_velocity_topic_, 1, &HeadingControlROS::desiredVelocityCallback, this);
     monitored_heading_subscriber_ = nh_.subscribe(monitored_heading_topic_, 1, &HeadingControlROS::monitoredHeadingCallback, this);
     heading_control_switch_service_ = nh.advertiseService("/heading_control_switch", &HeadingControlROS::headingControlSwitch, this);
-    operator_cmd_publisher_ = nh_.advertise<nav2d_operator::cmd>("/cmd", 1);
+    motion_cmd_publisher_ = nh_.advertise<motion_control::Command>("/motion_command", 1);
 }
 
 HeadingControlROS::~HeadingControlROS()
@@ -41,12 +41,11 @@ void HeadingControlROS::run()
         velocity = desired_velocity_;
     }
 
-    nav2d_operator::cmd cmd_msg;
-    cmd_msg.Turn = turn;
-    cmd_msg.Velocity = velocity;
-    cmd_msg.Mode = 0;
+    motion_control::Command cmd_msg;
+    cmd_msg.turn = turn;
+    cmd_msg.velocity = velocity;
     
-    operator_cmd_publisher_.publish(cmd_msg);
+    motion_cmd_publisher_.publish(cmd_msg);
 }
 
 void HeadingControlROS::loadParameters()

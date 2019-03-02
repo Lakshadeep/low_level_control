@@ -8,7 +8,7 @@
 #include <geometry_msgs/PoseWithCovarianceStamped.h>
 #include "heading_control/heading_control.h"
 #include "heading_control/Switch.h"
-#include "nav2d_operator/cmd.h"
+#include "motion_control/Command.h"
 
 
 class HeadingControlROS
@@ -26,7 +26,7 @@ private:
   ros::NodeHandle nh_;
   ros::Subscriber desired_heading_subscriber_, desired_velocity_subscriber_, monitored_heading_subscriber_ ;
   ros::ServiceServer heading_control_switch_service_;
-  ros::Publisher operator_cmd_publisher_;
+  ros::Publisher motion_cmd_publisher_;
 
   // Parameters
   std::string desired_heading_topic_, desired_velocity_topic_, monitored_heading_topic_ ;

@@ -1,5 +1,5 @@
 # Frequency in which to generate velocity commands to the robot platform
-frequency: 10
+frequency: 20
 
 # transform frames
 robot_frame: ropod/base_link

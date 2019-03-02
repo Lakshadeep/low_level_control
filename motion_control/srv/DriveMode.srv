@@ -1,0 +1,5 @@
+# 0 - obstacle avoidance
+# 1 - stop
+int8 drive_mode
+---
+int8 drive_mode
