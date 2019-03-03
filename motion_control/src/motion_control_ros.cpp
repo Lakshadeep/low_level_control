@@ -416,9 +416,11 @@ double MotionControlROS::findBestDirection()
 
 void MotionControlROS::executeCommand()
 {
+    geometry_msgs::Twist velocity_command_msg_;
+    double x, y, r;
+
     if(!is_enabled_)
     {
-        geometry_msgs::Twist velocity_command_msg_;
         velocity_command_msg_.linear.x = 0;
         velocity_command_msg_.linear.y = 0;
         velocity_command_msg_.angular.z = 0;
@@ -447,6 +449,19 @@ void MotionControlROS::executeCommand()
     case 1:
         current_direction_ = desired_direction_;
         current_velocity_ = desired_velocity_;
+        break;
+    case 2:
+        current_direction_ = desired_direction_;
+        current_velocity_ = desired_velocity_;
+
+        x = sin(current_direction_ * M_PI);
+        y = (cos(current_direction_ * M_PI) + 1);
+        r = ((x * x) + (y * y)) / (2 * x);
+
+        velocity_command_msg_.linear.x = 0;
+        velocity_command_msg_.angular.z = -1.0 * current_direction_ * current_velocity_;
+        velocity_command_publisher_.publish(velocity_command_msg_);
+        return;
         break;
     default:
         ROS_ERROR("Invalid drive mode!");
@@ -542,8 +557,6 @@ void MotionControlROS::executeCommand()
     }
     plan_publisher_.publish(plan_msg);
 
-    // Publish result via Twist-Message
-    geometry_msgs::Twist velocity_command_msg_;
     double velocity = current_velocity_;
     if (current_direction_ == 0)
     {
@@ -564,9 +577,9 @@ void MotionControlROS::executeCommand()
         velocity_command_msg_.angular.z = -1.0 * current_direction_ * velocity;
     } else
     {
-        double x = sin(current_direction_ * M_PI);
-        double y = (cos(current_direction_ * M_PI) + 1);
-        double r = ((x * x) + (y * y)) / (2 * x);
+        x = sin(current_direction_ * M_PI);
+        y = (cos(current_direction_ * M_PI) + 1);
+        r = ((x * x) + (y * y)) / (2 * x);
         double abs_r = (r > 0) ? r : -r;
         velocity /= (1 + (1.0 / abs_r));
         if (velocity > safe_velocity_)
