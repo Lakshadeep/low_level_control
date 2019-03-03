@@ -32,6 +32,7 @@ add_service_files(
   FILES 
   Switch.srv
   Params.srv
+  DriveMode.srv
 )
 
 generate_messages(

@@ -8,6 +8,7 @@ MotionControlROS::MotionControlROS(ros::NodeHandle& nh): nh_(nh), is_enabled_(fa
     motion_command_subscriber_ = nh_.subscribe(motion_command_topic_, 1, &MotionControlROS::motionCommandCallback, this);
     motion_control_switch_service_ = nh.advertiseService("/motion_control_switch", &MotionControlROS::motionControlSwitch, this);
     motion_control_params_service_ = nh.advertiseService("/motion_control_params", &MotionControlROS::reConfigureParams, this);
+    motion_control_drive_mode_service_ = nh.advertiseService("/motion_control_drive_mode", &MotionControlROS::setDriveMode, this);
     velocity_command_publisher_ = nh_.advertise<geometry_msgs::Twist>(velocity_command_topic_, 1);
     trajectory_publisher_ = nh_.advertise<nav_msgs::GridCells>("/route", 1);
     plan_publisher_ = nh_.advertise<nav_msgs::GridCells>("/plan", 1);
@@ -53,7 +54,6 @@ void MotionControlROS::motionCommandCallback(const motion_control::CommandConstP
     }
     desired_direction_ = motion_cmd_msg->turn;
     desired_velocity_ = motion_cmd_msg->velocity;
-    drive_mode_ = motion_cmd_msg->mode;
 }
 
 void MotionControlROS::loadParameters()
@@ -121,6 +121,13 @@ bool MotionControlROS::motionControlSwitch(motion_control::Switch::Request  &req
 {
     is_enabled_ = req.enable;
     res.status = true;
+    return true;
+}
+
+bool MotionControlROS::setDriveMode(motion_control::DriveMode::Request  &req, motion_control::DriveMode::Response &res)
+{
+    drive_mode_ = req.drive_mode;
+    res.drive_mode = drive_mode_;
     return true;
 }
 
@@ -410,7 +417,14 @@ double MotionControlROS::findBestDirection()
 void MotionControlROS::executeCommand()
 {
     if(!is_enabled_)
+    {
+        geometry_msgs::Twist velocity_command_msg_;
+        velocity_command_msg_.linear.x = 0;
+        velocity_command_msg_.linear.y = 0;
+        velocity_command_msg_.angular.z = 0;
+        velocity_command_publisher_.publish(velocity_command_msg_);
         return;
+    }
 
     // 1. Get a copy of the costmap to work on.
     costmap = local_map->getCostmap();
@@ -483,53 +497,50 @@ void MotionControlROS::executeCommand()
     }
 
     // Publish route via ROS (mainly for debugging)
-    if (false)
+    nav_msgs::GridCells route_msg;
+    route_msg.header.frame_id = odometry_frame_;
+    route_msg.header.stamp = ros::Time::now();
+
+    route_msg.cell_width = costmap->getResolution();
+    route_msg.cell_height = costmap->getResolution();
+
+    route_msg.cells.resize(free_cells);
+    for (int i = 0; i < free_cells; i++)
     {
-        nav_msgs::GridCells route_msg;
-        route_msg.header.frame_id = odometry_frame_;
-        route_msg.header.stamp = ros::Time::now();
-
-        route_msg.cell_width = costmap->getResolution();
-        route_msg.cell_height = costmap->getResolution();
-
-        route_msg.cells.resize(free_cells);
-        for (int i = 0; i < free_cells; i++)
-        {
-            route_msg.cells[i].x = transformedCloud.points[i].x;
-            route_msg.cells[i].y = transformedCloud.points[i].y;
-            route_msg.cells[i].z = transformedCloud.points[i].z;
-        }
-        trajectory_publisher_.publish(route_msg);
-
-        // Publish plan via ROS (mainly for debugging)
-        sensor_msgs::PointCloud* originalPlanCloud = getPointCloud(desired_direction_, desired_velocity_);
-        sensor_msgs::PointCloud transformedPlanCloud;
-
-        try
-        {
-            tf_listener_.transformPointCloud(odometry_frame_, *originalPlanCloud, transformedPlanCloud);
-        }
-        catch (tf::TransformException ex)
-        {
-            ROS_ERROR("%s", ex.what());
-            return;
-        }
-        nav_msgs::GridCells plan_msg;
-        plan_msg.header = route_msg.header;
-
-        plan_msg.cell_width = costmap->getResolution();
-        plan_msg.cell_height = costmap->getResolution();
-
-        int free_space_plan = calculateFreeSpace(&transformedPlanCloud);
-        plan_msg.cells.resize(free_space_plan);
-        for (int i = 0; i < free_space_plan; i++)
-        {
-            plan_msg.cells[i].x = transformedPlanCloud.points[i].x;
-            plan_msg.cells[i].y = transformedPlanCloud.points[i].y;
-            plan_msg.cells[i].z = transformedPlanCloud.points[i].z;
-        }
-        plan_publisher_.publish(plan_msg);
+        route_msg.cells[i].x = transformedCloud.points[i].x;
+        route_msg.cells[i].y = transformedCloud.points[i].y;
+        route_msg.cells[i].z = transformedCloud.points[i].z;
     }
+    trajectory_publisher_.publish(route_msg);
+
+    // Publish plan via ROS (mainly for debugging)
+    sensor_msgs::PointCloud* originalPlanCloud = getPointCloud(desired_direction_, desired_velocity_);
+    sensor_msgs::PointCloud transformedPlanCloud;
+
+    try
+    {
+        tf_listener_.transformPointCloud(odometry_frame_, *originalPlanCloud, transformedPlanCloud);
+    }
+    catch (tf::TransformException ex)
+    {
+        ROS_ERROR("%s", ex.what());
+        return;
+    }
+    nav_msgs::GridCells plan_msg;
+    plan_msg.header = route_msg.header;
+
+    plan_msg.cell_width = costmap->getResolution();
+    plan_msg.cell_height = costmap->getResolution();
+
+    int free_space_plan = calculateFreeSpace(&transformedPlanCloud);
+    plan_msg.cells.resize(free_space_plan);
+    for (int i = 0; i < free_space_plan; i++)
+    {
+        plan_msg.cells[i].x = transformedPlanCloud.points[i].x;
+        plan_msg.cells[i].y = transformedPlanCloud.points[i].y;
+        plan_msg.cells[i].z = transformedPlanCloud.points[i].z;
+    }
+    plan_publisher_.publish(plan_msg);
 
     // Publish result via Twist-Message
     geometry_msgs::Twist velocity_command_msg_;
