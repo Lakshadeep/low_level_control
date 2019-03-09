@@ -33,6 +33,8 @@ MotionControlROS::MotionControlROS(ros::NodeHandle& nh): nh_(nh), is_enabled_(fa
     drive_mode_ = 0;
     recovery_steps_ = 0;
 
+    reset_costmap_count_ = 0;
+
     ROS_DEBUG("Initialization complete");
 }
 
@@ -596,4 +598,19 @@ void MotionControlROS::executeCommand()
         velocity_command_msg_.angular.z = -1.0 / r * velocity_command_msg_.linear.x;
     }
     velocity_command_publisher_.publish(velocity_command_msg_);
+
+
+    // This can be used  to reset costmap, though its not required if laser range values are set to infinity
+    // but its is required if laser range max values are set to none 
+    
+    // if (reset_costmap_count_ == 30)
+    // {
+    //     // local_map->resetLayers();
+    //     reset_costmap_count_ = 0;
+    // }
+    // else
+    // {
+    //     reset_costmap_count_ = reset_costmap_count_ + 1;
+    // }
+
 }

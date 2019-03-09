@@ -68,6 +68,7 @@ private:
     // robot motion monitoring
     MotionControl motion_control_;
     bool is_enabled_;
+    int reset_costmap_count_;
 
     // desired params
     double desired_velocity_;

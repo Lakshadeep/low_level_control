@@ -34,4 +34,5 @@ cost_scaling_factor: 10.0
 lethal_cost_threshold: 100
 observation_sources: scan
 scan: {sensor_frame: ropod/laser/scan, data_type: LaserScan, topic: /ropod/laser/scan, expected_update_rate: 0.4,
-  observation_persistence: 0.0, marking: true, clearing: true, max_obstacle_height: 0.4, min_obstacle_height: 0.08, inf_is_valid: true}
+  observation_persistence: 0.0, marking: true, clearing: true, max_obstacle_height: 0.4, min_obstacle_height: 0.08, 
+  obstacle_range: 3.0, inf_is_valid: true, raytrace_range: 5.0, nan_is_valid: true}
