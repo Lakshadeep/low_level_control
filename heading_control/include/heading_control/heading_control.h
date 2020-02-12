@@ -16,6 +16,7 @@ public:
 private:
     double last_error_;
     double kp_, kd_;
+    double wrapTo2Pi(double angle);
 };
 
 #endif
